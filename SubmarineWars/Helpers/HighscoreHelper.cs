@@ -80,25 +80,6 @@ namespace SubmarineWars
             return sorted;
         }
 
-        public void AddHighscore(string name, string score)
-        {
-            XmlDocument xmldocument = GetHighscoreFile();
-
-            XmlNode root = xmldocument.SelectSingleNode("/highscores");
-            XmlElement child = xmldocument.CreateElement(string.Empty, "highscore", string.Empty);
-            XmlAttribute nameAttr = xmldocument.CreateAttribute("name");
-            XmlAttribute scoreAttr = xmldocument.CreateAttribute("score");
-
-            nameAttr.InnerText = name;
-            scoreAttr.InnerText = score;
-            child.Attributes.Append(nameAttr);
-            child.Attributes.Append(scoreAttr);
-
-            root.AppendChild(child);
-
-            xmldocument.Save(highscoreXml);
-
-        }
 
         public XmlDocument GetHighscoreFile()
         {
@@ -109,6 +90,25 @@ namespace SubmarineWars
                 return xmldoc;
             }
             return null;
+        }
+
+        internal void AddHighscore(string name, int score)
+        {
+            XmlDocument xmldocument = GetHighscoreFile();
+
+            XmlNode root = xmldocument.SelectSingleNode("/highscores");
+            XmlElement child = xmldocument.CreateElement(string.Empty, "highscore", string.Empty);
+            XmlAttribute nameAttr = xmldocument.CreateAttribute("name");
+            XmlAttribute scoreAttr = xmldocument.CreateAttribute("score");
+
+            nameAttr.InnerText = name;
+            scoreAttr.InnerText = score.ToString();
+            child.Attributes.Append(nameAttr);
+            child.Attributes.Append(scoreAttr);
+
+            root.AppendChild(child);
+
+            xmldocument.Save(highscoreXml);
         }
     }
 }
