@@ -19,7 +19,7 @@ namespace SubmarineWars
         enum GameState { RUNNING, VICTORY, LOSE, RESET }
 
         int score = 0;
-        int torpedoCount = 20;
+        int torpedoAmmo = 20;
         int level = 1; // factor in for number of enemies
         int maxEnemies;
         int ticksSinceStart = 0;
@@ -53,7 +53,7 @@ namespace SubmarineWars
                 enemies.Clear();
             }
 
-            this.maxEnemies = rand.Next(6, 33);
+            this.maxEnemies = rand.Next(6, (level * 2) + 6);
 
             // start enemy spawn at   y = 110
             //                  x = 50
@@ -111,6 +111,7 @@ namespace SubmarineWars
             {
                 SetGameState(GameState.VICTORY, sender, e);
             }
+
         }
 
         private GameState GetGameState()
@@ -135,29 +136,34 @@ namespace SubmarineWars
                     Victory();
                     break;
                 case GameState.RESET:
-                    if (!victory)
-                    {
-                        this.score = 0;
-                    }
-
-                    YouWin.Visible = false;
-                    YouLose.Visible = false;
-                    FinalScore.Visible = false;
-                    Username.Enabled = false;
-                    Username.Visible = false;
-                    Continue.Enabled = false;
-                    Continue.Visible = false;
-                    UsernameLabel.Visible = false;
-                    UsernameLabel2.Visible = false;
-                    this.victory = false;
-                    this.lose = false;
-
-                    GameForm_Load(sender, e);
+                    Reset(sender, e);
                     break;
                 case GameState.LOSE:
                     Lose();
                     break;
             }
+        }
+
+        public void Reset(object sender, EventArgs e)
+        {
+            if (!victory)
+            {
+                this.score = 0;
+            }
+            this.ticksSinceStart = 0;
+            YouWin.Visible = false;
+            YouLose.Visible = false;
+            FinalScore.Visible = false;
+            Username.Enabled = false;
+            Username.Visible = false;
+            Continue.Enabled = false;
+            Continue.Visible = false;
+            UsernameLabel.Visible = false;
+            UsernameLabel2.Visible = false;
+            this.victory = false;
+            this.lose = false;
+
+            GameForm_Load(sender, e);
         }
 
 
@@ -166,6 +172,7 @@ namespace SubmarineWars
         {
             if (!victory)
             {
+                this.ticksSinceStart = 0;
                 FinalScore.Text = "Score: " + score;
                 YouLose.Visible = true;
                 FinalScore.Visible = true;
@@ -185,6 +192,7 @@ namespace SubmarineWars
         {
             if (!victory)
             {
+                this.ticksSinceStart = 0;
                 FinalScore.Text = "Score: " + score;
                 YouWin.Visible = true;
                 FinalScore.Visible = true;
@@ -195,27 +203,10 @@ namespace SubmarineWars
                 UsernameLabel.Visible = true;
                 UsernameLabel2.Visible = true;
                 this.victory = true;
+                level++;
             }
 
             return;
-        }
-
-        private void Username_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return)
-            {
-                if (sender is TextBox)
-                {
-                    TextBox input = (TextBox)sender;
-                    string text = input.Text;
-                    if (text.Length == 3)
-                    {
-                        HighscoreHelper highscoreHelper = new HighscoreHelper();
-                        highscoreHelper.AddHighscore(text, this.score);
-                    }
-                }
-
-            }
         }
 
         private void UpdateTorpedo()
@@ -230,7 +221,7 @@ namespace SubmarineWars
         {
             foreach (Enemy enemy in enemies)
             {
-                if (ticksSinceStart % (100 - level) == 1)
+                if (ticksSinceStart % (100 - (level * 2)) == 1)
                 {
                     enemy.Y += enemy.TravelDistance;
 
@@ -245,7 +236,7 @@ namespace SubmarineWars
 
         private void FireTorpedo()
         {
-            if (torpedo == null)
+            if (torpedo == null && torpedoAmmo > 0)
             {
                 torpedo = new Torpedo();
                 torpedo.X = hero.X + 2;
@@ -306,12 +297,9 @@ namespace SubmarineWars
         private void PaintEnemies(Graphics g)
         {
             SolidBrush b = new SolidBrush(Color.White);
-            Font drawFont = new Font("Arial", 9);
-            StringFormat drawFormat = new StringFormat();
             foreach (Enemy enemy in enemies)
             {
                 g.FillRectangle(b, enemy.X, enemy.Y, enemy.Width, enemy.Height);
-                g.DrawString(enemy.Value + "pts", drawFont, b, new Point(enemy.X, enemy.Y - 15), drawFormat);
             }
         }
 
@@ -327,8 +315,27 @@ namespace SubmarineWars
 
         private void Continue_Click(object sender, EventArgs e)
         {
-            level++;
             SetGameState(GameState.RESET, sender, e);
+        }
+
+        private void Username_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return)
+            {
+                if (sender is TextBox)
+                {
+                    TextBox input = (TextBox)sender;
+                    string text = input.Text;
+                    if (text.Length == 3)
+                    {
+                        HighscoreHelper highscoreHelper = new HighscoreHelper();
+                        highscoreHelper.AddHighscore(text.ToUpper(), this.score);
+                        input.Visible = false;
+                        input.Enabled = false;
+                    }
+                }
+
+            }
         }
 
     }
