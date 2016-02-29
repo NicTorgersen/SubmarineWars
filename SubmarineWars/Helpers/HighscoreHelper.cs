@@ -70,12 +70,13 @@ namespace SubmarineWars
             Dictionary<string, int> highscores = new Dictionary<string, int>();
             XmlDocument xmldocument = GetHighscoreFile();
             XmlNodeList highscoreNodes = xmldocument.DocumentElement.SelectNodes("/highscores/highscore");
+            List<KeyValuePair<string, int>> sorted = new List<KeyValuePair<string, int>>();
 
             foreach (XmlNode highscoreNode in highscoreNodes) {
                 highscores.Add(highscoreNode.Attributes["name"].Value, Int32.Parse(highscoreNode.Attributes["score"].Value));
             }
 
-            List<KeyValuePair<string, int>> sorted = (from kv in highscores orderby kv.Value descending select kv).ToList();
+            sorted = (from kv in highscores orderby kv.Value descending select kv).ToList();
 
             return sorted;
         }

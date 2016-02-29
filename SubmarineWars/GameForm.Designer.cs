@@ -40,16 +40,18 @@
             this.UsernameLabel2 = new System.Windows.Forms.Label();
             this.YouLose = new System.Windows.Forms.Label();
             this.LevelCount = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // GameLoop
             // 
             this.GameLoop.Enabled = true;
-            this.GameLoop.Interval = 10;
+            this.GameLoop.Interval = 15;
             this.GameLoop.Tick += new System.EventHandler(this.GameLoop_Tick);
             // 
             // button1
             // 
+            this.button1.AccessibleRole = System.Windows.Forms.AccessibleRole.Cursor;
             this.button1.BackColor = System.Drawing.Color.Black;
             this.button1.FlatAppearance.BorderColor = System.Drawing.Color.Black;
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -176,6 +178,19 @@
             this.LevelCount.TabIndex = 9;
             this.LevelCount.Text = "Level: ";
             // 
+            // button2
+            // 
+            this.button2.BackColor = System.Drawing.Color.Black;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button2.ForeColor = System.Drawing.Color.White;
+            this.button2.Location = new System.Drawing.Point(624, 474);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(122, 23);
+            this.button2.TabIndex = 10;
+            this.button2.Text = "Mute";
+            this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -183,6 +198,7 @@
             this.BackgroundImage = global::SubmarineWars.Properties.Resources.screen;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(747, 541);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.LevelCount);
             this.Controls.Add(this.YouLose);
             this.Controls.Add(this.UsernameLabel2);
@@ -219,5 +235,6 @@
         private System.Windows.Forms.Label UsernameLabel2;
         private System.Windows.Forms.Label YouLose;
         private System.Windows.Forms.Label LevelCount;
+        private System.Windows.Forms.Button button2;
     }
 }

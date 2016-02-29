@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml;
+using SubmarineWars.Helpers;
+using SubmarineWars.GameObjects;
 
 namespace SubmarineWars
 {
@@ -23,15 +25,19 @@ namespace SubmarineWars
         int level = 1; // factor in for number of enemies
         int maxEnemies;
         int ticksSinceStart = 0;
+        int preferredTickrate = 60;
+        const int fallConst = 20;
 
         bool victory = false;
         bool lose = false;
 
         List<Enemy> enemies = new List<Enemy>();
+        List<Loot> loot = new List<Loot>();
         Hero hero;
         Torpedo torpedo = null;
+        ThreeShooter threeShooter = null;
         Random rand = new Random();
-        
+        SoundHelper sound = new SoundHelper();
 
         public GameForm(MainMenuForm mainmenu)
         {
@@ -39,6 +45,8 @@ namespace SubmarineWars
             this.ControlBox = false;
             this.mainmenu = mainmenu;
             this.hero = new Hero();
+            GameLoop.Interval = 1000 / preferredTickrate; // 60 fps
+            this.Focus();
         }
 
         private void GameForm_Load(object sender, EventArgs e)
@@ -55,28 +63,15 @@ namespace SubmarineWars
 
             this.maxEnemies = rand.Next(6, (level * 2) + 6);
 
-            // start enemy spawn at   y = 110
-            //                  x = 50
-            // end enemy spawn before y = 300
-            //                  x = 703
+            // start enemy spawn at     y = 110
+            //                          x = 50
+            // end enemy spawn before   y = 300
+            //                          x = 703
             // have padding between enemies (10 px)
-            for (int i = 0; i < maxEnemies; i++)
-            {
-                int x = rand.Next(50, 704);
-                int y = rand.Next(110, 200);
-                int w = rand.Next(10, 31);
-                int h = rand.Next(10, 31);
-
-                int value = ((h < 20 && w < 20) || h > w + 5) ? 2 : 1; // generate value based on size of enemy
-
-                if (SpaceOccupied(x, y) == null)
-                {
-                    enemies.Add(new Enemy(x, y, w, h, value));
-                }
-            }
+            SpawnEnemies();
         }
 
-        private Enemy SpaceOccupied(int x, int y)
+        private Enemy SpaceHasEnemy(int x, int y)
         {
             foreach (Enemy enemy in enemies)
             {
@@ -88,12 +83,23 @@ namespace SubmarineWars
                     return enemy;
                 }
             }
+
+            return null;
+        }
+
+        private Hero SpaceHasHero(int x, int y)
+        {
+            if ((x >= hero.X && x <= hero.X + hero.Width) &&
+                (y <= hero.Y + hero.Height))
+            {
+                return hero;
+            }
+
             return null;
         }
 
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-            this.UpdateScore(score);
 
             if (GetGameState() == GameState.LOSE)
             {
@@ -101,17 +107,59 @@ namespace SubmarineWars
                 return;
             }
 
+            this.UpdateScore(score);
             this.UpdateEnemies();
             this.UpdateTorpedo();
-            this.Refresh();
+            this.UpdateThreeShooter();
+            this.UpdateLoot();
             this.ticksSinceStart++;
             this.LevelCount.Text = "Level: " + level;
+            this.Refresh();
 
             if (enemies.Count == 0)
             {
                 SetGameState(GameState.VICTORY, sender, e);
+                return;
             }
 
+            // random events
+            if (ticksSinceStart % preferredTickrate == 1)
+            {
+                return;
+            }
+
+        }
+
+        private void SpawnEnemies()
+        {
+            for (int i = 0; i < maxEnemies; i++)
+            {
+                int x = rand.Next(50, 704);
+                int y = rand.Next(110, 200);
+                int w = rand.Next(10, 31);
+                int h = rand.Next(10, 31);
+
+                int value = ((h < 20 && w < 20) || h > w + 5) ? 2 : 1; // generate value based on size of enemy
+
+                if (SpaceHasEnemy(x, y) == null)
+                {
+                    enemies.Add(new Enemy(x, y, w, h, value));
+                }
+            }
+        }
+
+        private void SpawnLoot(int x = -1, int y = -1)
+        {
+            int lootX = rand.Next(50, 704);
+            int lootY = rand.Next(110, 301);
+
+            if (x != -1 && y != -1)
+            {
+                lootX = x;
+                lootY = y;
+            }
+            
+            loot.Add(new Loot(lootX, lootY));
         }
 
         private GameState GetGameState()
@@ -136,6 +184,7 @@ namespace SubmarineWars
                     Victory();
                     break;
                 case GameState.RESET:
+                    sound.PlayExtraSound();
                     Reset(sender, e);
                     break;
                 case GameState.LOSE:
@@ -204,6 +253,8 @@ namespace SubmarineWars
                 UsernameLabel2.Visible = true;
                 this.victory = true;
                 level++;
+
+                sound.PlayWinSound();
             }
 
             return;
@@ -214,15 +265,79 @@ namespace SubmarineWars
             if (torpedo != null)
             {
                 torpedo.Y = torpedo.Y - torpedo.speed;
+
+                if (torpedo.Y < 1)
+                {
+                    torpedo = null;
+                    return;
+                }
+
+                Enemy collidedWith = SpaceHasEnemy(torpedo.X, torpedo.Y);
+
+                if (collidedWith != null)
+                {
+                    torpedo = null;
+                    enemies.Remove(collidedWith);
+                    score += collidedWith.Value;
+                    sound.PlayEnemyDeathSound();
+
+                    if (rand.Next(1, 21) == rand.Next(1, 21))
+                    {
+                        SpawnLoot(collidedWith.X, collidedWith.Y);
+                    }
+                }
+            }
+        }
+        private void UpdateThreeShooter()
+        {
+            if (threeShooter != null)
+            {
+                for (int i = 0; i < threeShooter.Torpedos.Count; i++)
+                {
+                    threeShooter.Torpedos[i].Y -= threeShooter.Torpedos[i].speed;
+
+                    if (i == 0)
+                    {
+                        threeShooter.Torpedos[i].X += threeShooter.Torpedos[i].speed;
+                    }
+                    else if (i == threeShooter.Torpedos.Count)
+                    {
+                        threeShooter.Torpedos[i].X -= threeShooter.Torpedos[i].speed;
+                    }
+
+                    if (threeShooter.Torpedos[i].Y < 1)
+                    {
+                        threeShooter = null;
+                        return;
+                    }
+
+                    Enemy collidedWith = SpaceHasEnemy(threeShooter.Torpedos[i].X, threeShooter.Torpedos[i].Y);
+
+                    if (collidedWith != null)
+                    {
+                        threeShooter.Torpedos.Remove(threeShooter.Torpedos[i]);
+                        enemies.Remove(collidedWith);
+                        score += collidedWith.Value;
+                        sound.PlayEnemyDeathSound();
+                    }
+                }
             }
         }
 
         private void UpdateEnemies()
         {
-            foreach (Enemy enemy in enemies)
+            int timeCalc = preferredTickrate - (level * 2);
+
+            if (timeCalc < 1) timeCalc = 1;
+
+            if (ticksSinceStart % timeCalc == 1)
             {
-                if (ticksSinceStart % (100 - (level * 2)) == 1)
+                foreach (Enemy enemy in enemies)
                 {
+                    if (level >= 5) {
+                        enemy.EnemyWobble(50, 703);
+                    }
+
                     enemy.Y += enemy.TravelDistance;
 
                     if (enemy.Y > hero.Y)
@@ -230,7 +345,21 @@ namespace SubmarineWars
                         this.lose = true;
                     }
                 }
+            }
+        }
 
+        private void UpdateLoot()
+        {
+            foreach (Loot lootBox in loot.ToList())
+            {
+                lootBox.Y += 1;
+
+                Hero collidedWith = SpaceHasHero(lootBox.X, lootBox.Y);
+                if (collidedWith != null)
+                {
+                    this.hero.AddWeapon(lootBox.Weapon, lootBox.Ammo);
+                    this.loot.Remove(lootBox);
+                }
             }
         }
 
@@ -239,8 +368,21 @@ namespace SubmarineWars
             if (torpedo == null && torpedoAmmo > 0)
             {
                 torpedo = new Torpedo();
-                torpedo.X = hero.X + 2;
+                torpedo.X = hero.X + 5;
                 torpedo.Y = hero.Y;
+                sound.PlayFireSound();
+            }
+        }
+
+        private void FireThreeShooter()
+        {
+            if (
+                threeShooter == null 
+                //&& hero.HasAmmo(Weapon.WeaponTypes.THREE_SHOOTER)
+                )
+            {
+                threeShooter = new ThreeShooter(this.hero.X, this.hero.Y - 2);
+                Console.WriteLine("Fired threeshooter: {0}", threeShooter.ToString());
             }
         }
 
@@ -250,18 +392,12 @@ namespace SubmarineWars
             label1.Text = score + " pts";
         }
 
-        // Avslutt
-        private void button1_Click_1(object sender, EventArgs e)
-        {
-            this.Dispose();
-            mainmenu.Show();
-        }
-
         private void GameForm_Paint(object sender, PaintEventArgs e)
         {
             PaintHero(e.Graphics);
             PaintEnemies(e.Graphics);
             PaintTorpedo(e.Graphics);
+            PaintLootBoxes(e.Graphics);
         }
 
         private void PaintTorpedo(Graphics g)
@@ -270,21 +406,16 @@ namespace SubmarineWars
             {
                 SolidBrush b = new SolidBrush(Color.White);
                 g.FillRectangle(b, torpedo.X, torpedo.Y, 5, 5);
+            }
 
-                Enemy collidedWith = SpaceOccupied(torpedo.X, torpedo.Y);
-                if (collidedWith != null)
+            if (threeShooter != null)
+            {
+                SolidBrush b = new SolidBrush(Color.White);
+                foreach (Torpedo t in threeShooter.Torpedos)
                 {
-                    torpedo = null;
-                    enemies.Remove(collidedWith);
-                    score += collidedWith.Value;
+                    g.FillRectangle(b, t.X, t.Y, 5, 5);
                 }
             }
-
-            if (torpedo != null && torpedo.Y < 1)
-            {
-                torpedo = null;
-            }
-
         }
 
         private void PaintHero(Graphics g)
@@ -303,21 +434,41 @@ namespace SubmarineWars
             }
         }
 
+        private void PaintLootBoxes(Graphics g)
+        {
+            SolidBrush b = new SolidBrush(Color.Gold);
+
+            foreach (Loot lootBox in loot)
+            {
+                g.FillRectangle(b, lootBox.X, lootBox.Y, lootBox.Width, lootBox.Height);
+            }
+        }
+
         private void GameForm_MouseMove(object sender, MouseEventArgs e)
         {
             this.hero.X = e.X;
         }
 
-        private void GameForm_MouseDown(object sender, MouseEventArgs e)
-        {
-            FireTorpedo();
-        }
-
+        // Continue knapp
         private void Continue_Click(object sender, EventArgs e)
         {
             SetGameState(GameState.RESET, sender, e);
         }
 
+        // Museklikk
+        private void GameForm_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                FireThreeShooter();
+            }
+            else
+            {
+                FireTorpedo();
+            }
+        }
+
+        // Når enter trykkes i Highscore input
         private void Username_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return)
@@ -336,6 +487,19 @@ namespace SubmarineWars
                 }
 
             }
+        }
+
+        // Mute button
+        private void button2_Click(object sender, EventArgs e)
+        {
+            sound.SetIsMuted(!sound.GetIsMuted());
+        }
+
+        // Avslutt
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            this.Dispose();
+            mainmenu.Show();
         }
 
     }

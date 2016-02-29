@@ -13,8 +13,9 @@ namespace SubmarineWars
         public int X { get; set; }
         public int Y { get; set; }
         public int TravelDistance { get; set; }
-
         public int Value { get; set; }
+
+        private int travelDirection;
 
         public Enemy(int x, int y, int width = 10, int height = 10, int value = 1, int speed = 30)
         {
@@ -24,7 +25,21 @@ namespace SubmarineWars
             this.Y = y;
             this.Value = value;
             this.TravelDistance = speed;
+            this.travelDirection = -speed;
         }
 
+        internal void EnemyWobble(int min, int max)
+        {
+            if (this.X > max) {
+                this.travelDirection = -TravelDistance;
+            }
+            else if (this.X < min)
+            {
+                this.travelDirection = TravelDistance;
+            }
+
+            this.X += travelDirection;
+            
+        }
     }
 }

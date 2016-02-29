@@ -69,6 +69,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameObjects\Enemy.cs" />
+    <Compile Include="GameObjects\Loot.cs" />
+    <Compile Include="GameObjects\ThreeShooter.cs" />
+    <Compile Include="GameObjects\Weapon.cs" />
     <Compile Include="Helpers\ConfigurationHelper.cs" />
     <Compile Include="GameForm.cs">
       <SubType>Form</SubType>
@@ -77,6 +80,7 @@
       <DependentUpon>GameForm.cs</DependentUpon>
     </Compile>
     <Compile Include="GameObjects\Hero.cs" />
+    <Compile Include="Helpers\SoundHelper.cs" />
     <Compile Include="HighscoresForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -130,7 +134,12 @@
     <None Include="Resources\submarine-wars.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\win.wav" />
+    <None Include="Resources\shoot_torpedo.wav" />
+    <None Include="Resources\enemy_explode.wav" />
+    <None Include="Resources\extra.wav" />
     <Content Include="Resources\GameIcon.ico" />
+    <None Include="Resources\lose.wav" />
     <Content Include="Resources\screen.png" />
   </ItemGroup>
   <ItemGroup>

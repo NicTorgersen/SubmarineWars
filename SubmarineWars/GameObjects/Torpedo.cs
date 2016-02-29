@@ -11,5 +11,11 @@ namespace SubmarineWars
         public int X { get; set; }
         public int Y { get; set; }
         public int speed = 20;
+
+        public Torpedo(int originX = 0, int originY = 0)
+        {
+            this.X = originX;
+            this.Y = originY;
+        }
     }
 }
