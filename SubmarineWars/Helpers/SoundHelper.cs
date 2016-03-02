@@ -18,17 +18,22 @@ namespace SubmarineWars.Helpers
         {
             this.isMuted = mute;
         }
-
         public void SetIsMuted(bool mute)
         {
             this.isMuted = mute;
         }
-
         public bool GetIsMuted()
         {
             return this.isMuted;
         }
-
+        public void PlayNewWeaponSound()
+        {
+            if (!this.isMuted)
+            {
+                player.Stream = Properties.Resources.new_weapon;
+                player.Play();
+            }
+        }
         public void PlayWinSound()
         {
             if (!this.isMuted)

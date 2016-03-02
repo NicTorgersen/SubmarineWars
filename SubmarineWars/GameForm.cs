@@ -292,16 +292,26 @@ namespace SubmarineWars
         {
             if (threeShooter != null)
             {
+                // if a threeshooter hits someone,
+                // contemplate if it's smarter to replace the value
+                // in the list with a null value
+
                 for (int i = 0; i < threeShooter.Torpedos.Count; i++)
                 {
+                    if (threeShooter.Torpedos[i] == null) {
+                        continue;
+                    }
+
                     threeShooter.Torpedos[i].Y -= threeShooter.Torpedos[i].speed;
 
                     if (i == 0)
                     {
                         threeShooter.Torpedos[i].X += threeShooter.Torpedos[i].speed;
                     }
-                    else if (i == threeShooter.Torpedos.Count)
+                    else if (i == (threeShooter.Torpedos.Count - 1))
                     {
+                        Console.WriteLine(threeShooter.Torpedos.Count.ToString());
+
                         threeShooter.Torpedos[i].X -= threeShooter.Torpedos[i].speed;
                     }
 
@@ -315,7 +325,7 @@ namespace SubmarineWars
 
                     if (collidedWith != null)
                     {
-                        threeShooter.Torpedos.Remove(threeShooter.Torpedos[i]);
+                        threeShooter.Torpedos.Insert(i, null);
                         enemies.Remove(collidedWith);
                         score += collidedWith.Value;
                         sound.PlayEnemyDeathSound();
@@ -359,6 +369,7 @@ namespace SubmarineWars
                 {
                     this.hero.AddWeapon(lootBox.Weapon, lootBox.Ammo);
                     this.loot.Remove(lootBox);
+                    sound.PlayNewWeaponSound();
                 }
             }
         }
@@ -378,11 +389,11 @@ namespace SubmarineWars
         {
             if (
                 threeShooter == null 
-                //&& hero.HasAmmo(Weapon.WeaponTypes.THREE_SHOOTER)
+                && hero.HasAmmo(Weapon.WeaponTypes.THREE_SHOOTER)
                 )
             {
                 threeShooter = new ThreeShooter(this.hero.X, this.hero.Y - 2);
-                Console.WriteLine("Fired threeshooter: {0}", threeShooter.ToString());
+                hero.SubtractAmmo(Weapon.WeaponTypes.THREE_SHOOTER);
             }
         }
 
@@ -413,7 +424,7 @@ namespace SubmarineWars
                 SolidBrush b = new SolidBrush(Color.White);
                 foreach (Torpedo t in threeShooter.Torpedos)
                 {
-                    g.FillRectangle(b, t.X, t.Y, 5, 5);
+                    if (t != null) g.FillRectangle(b, t.X, t.Y, 5, 5);
                 }
             }
         }

@@ -21,12 +21,12 @@ namespace SubmarineWars.GameObjects
             for (int i = 0; i < 3; i++)
             {
                 Torpedo torpedo = new Torpedo(this.X, this.Y);
-                Console.WriteLine("Created torpedo {0}", i);
+
                 if (i == 0)
                 {
                     torpedo.X += 5;
                 }
-                else if (i == Torpedos.Count)
+                else if (i == (Torpedos.Count - 1))
                 {
                     torpedo.X -= 5;
                 }

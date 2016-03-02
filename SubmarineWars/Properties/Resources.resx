@@ -139,4 +139,7 @@
   <data name="win" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\win.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="new_weapon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\new_weapon.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

@@ -30,7 +30,8 @@ namespace SubmarineWars
             }
             else
             {
-                this.Weapons[weapon] += ammo;
+                this.Weapons[weapon] = this.Weapons[weapon] + ammo;
+                Console.WriteLine("Weapon has now {0} ammo", ammo);
             }
         }
 
@@ -58,6 +59,17 @@ namespace SubmarineWars
             }
 
             return 0;
+        }
+
+        public void SubtractAmmo(Weapon.WeaponTypes weaponType)
+        {
+            foreach (KeyValuePair<Weapon, int> w in this.Weapons.ToList())
+            {
+                if (w.Key.WeaponType == weaponType && w.Value > 0)
+                {
+                    this.Weapons[w.Key]--;
+                }
+            }
         }
     }
 }

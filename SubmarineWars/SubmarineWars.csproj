@@ -140,6 +140,7 @@
     <None Include="Resources\extra.wav" />
     <Content Include="Resources\GameIcon.ico" />
     <None Include="Resources\lose.wav" />
+    <None Include="Resources\new_weapon.wav" />
     <Content Include="Resources\screen.png" />
   </ItemGroup>
   <ItemGroup>

@@ -98,16 +98,37 @@ namespace SubmarineWars
             XmlDocument xmldocument = GetHighscoreFile();
 
             XmlNode root = xmldocument.SelectSingleNode("/highscores");
-            XmlElement child = xmldocument.CreateElement(string.Empty, "highscore", string.Empty);
-            XmlAttribute nameAttr = xmldocument.CreateAttribute("name");
-            XmlAttribute scoreAttr = xmldocument.CreateAttribute("score");
+            XmlNodeList highscoreNodes = xmldocument.DocumentElement.SelectNodes("/highscores/highscore");
 
-            nameAttr.InnerText = name;
-            scoreAttr.InnerText = score.ToString();
-            child.Attributes.Append(nameAttr);
-            child.Attributes.Append(scoreAttr);
+            bool nodeExists = false;
 
-            root.AppendChild(child);
+            foreach (XmlNode highscoreNode in highscoreNodes)
+            {
+
+                if (highscoreNode.Attributes["name"].Equals(name) && Int32.Parse(highscoreNode.Attributes["score"].Value) < score)
+                {
+                    nodeExists = true;
+                }
+                else if (highscoreNode.Attributes["name"].Equals(name) && Int32.Parse(highscoreNode.Attributes["score"].Value) > score)
+                {
+                    nodeExists = true;
+                    highscoreNode.Attributes["score"].Value = score.ToString();
+                }
+            }
+
+            if (!nodeExists)
+            {
+                XmlElement child = xmldocument.CreateElement(string.Empty, "highscore", string.Empty);
+                XmlAttribute nameAttr = xmldocument.CreateAttribute("name");
+                XmlAttribute scoreAttr = xmldocument.CreateAttribute("score");
+
+                nameAttr.InnerText = name;
+                scoreAttr.InnerText = score.ToString();
+                child.Attributes.Append(nameAttr);
+                child.Attributes.Append(scoreAttr);
+
+                root.AppendChild(child);
+            }
 
             xmldocument.Save(highscoreXml);
         }
