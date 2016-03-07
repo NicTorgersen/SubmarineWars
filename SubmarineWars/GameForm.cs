@@ -56,6 +56,8 @@ namespace SubmarineWars
             // at y = 444 for some padding
             hero.Y = 444;
 
+            // if there are enemies in the list
+            // clear it out when this function runs
             if (enemies.Count > 0)
             {
                 enemies.Clear();
@@ -68,12 +70,12 @@ namespace SubmarineWars
             // end enemy spawn before   y = 300
             //                          x = 703
             // have padding between enemies (10 px)
-            SpawnEnemies();
+            enemies = Enemy.SpawnEnemies(maxEnemies, rand);
         }
 
-        private Enemy SpaceHasEnemy(int x, int y)
+        private BoxEnemy SpaceHasEnemy(int x, int y)
         {
-            foreach (Enemy enemy in enemies)
+            foreach (BoxEnemy enemy in enemies)
             {
                 if (
                     ((x >= enemy.X && x <= enemy.X + enemy.Width) &&
@@ -100,7 +102,6 @@ namespace SubmarineWars
 
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-
             if (GetGameState() == GameState.LOSE)
             {
                 Lose();
@@ -143,7 +144,7 @@ namespace SubmarineWars
 
                 if (SpaceHasEnemy(x, y) == null)
                 {
-                    enemies.Add(new Enemy(x, y, w, h, value));
+                    enemies.Add(new BoxEnemy(x, y, w, h, value));
                 }
             }
         }
@@ -272,7 +273,7 @@ namespace SubmarineWars
                     return;
                 }
 
-                Enemy collidedWith = SpaceHasEnemy(torpedo.X, torpedo.Y);
+                BoxEnemy collidedWith = SpaceHasEnemy(torpedo.X, torpedo.Y);
 
                 if (collidedWith != null)
                 {
@@ -321,7 +322,7 @@ namespace SubmarineWars
                         return;
                     }
 
-                    Enemy collidedWith = SpaceHasEnemy(threeShooter.Torpedos[i].X, threeShooter.Torpedos[i].Y);
+                    BoxEnemy collidedWith = SpaceHasEnemy(threeShooter.Torpedos[i].X, threeShooter.Torpedos[i].Y);
 
                     if (collidedWith != null)
                     {
@@ -342,7 +343,7 @@ namespace SubmarineWars
 
             if (ticksSinceStart % timeCalc == 1)
             {
-                foreach (Enemy enemy in enemies)
+                foreach (BoxEnemy enemy in enemies)
                 {
                     if (level >= 5) {
                         enemy.EnemyWobble(50, 703);
@@ -439,7 +440,7 @@ namespace SubmarineWars
         private void PaintEnemies(Graphics g)
         {
             SolidBrush b = new SolidBrush(Color.White);
-            foreach (Enemy enemy in enemies)
+            foreach (BoxEnemy enemy in enemies)
             {
                 g.FillRectangle(b, enemy.X, enemy.Y, enemy.Width, enemy.Height);
             }

@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace SubmarineWars.GameObjects
 {
-    public class ThreeShooter
+    public class ThreeShooter : Weapon
     {
         public List<Torpedo> Torpedos = new List<Torpedo>();
 
         int X { get; set; }
         int Y { get; set; }
 
-        public ThreeShooter(int originX, int originY)
+        public ThreeShooter(int originX, int originY) : base(WeaponTypes.THREE_SHOOTER)
         {
             this.X = originX;
             this.Y = originY;

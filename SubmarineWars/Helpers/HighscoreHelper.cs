@@ -105,11 +105,11 @@ namespace SubmarineWars
             foreach (XmlNode highscoreNode in highscoreNodes)
             {
 
-                if (highscoreNode.Attributes["name"].Equals(name) && Int32.Parse(highscoreNode.Attributes["score"].Value) < score)
+                if (highscoreNode.Attributes["name"].Value.Equals(name) && Int32.Parse(highscoreNode.Attributes["score"].Value) > score)
                 {
                     nodeExists = true;
                 }
-                else if (highscoreNode.Attributes["name"].Equals(name) && Int32.Parse(highscoreNode.Attributes["score"].Value) > score)
+                else if (highscoreNode.Attributes["name"].Value.Equals(name) && Int32.Parse(highscoreNode.Attributes["score"].Value) < score)
                 {
                     nodeExists = true;
                     highscoreNode.Attributes["score"].Value = score.ToString();

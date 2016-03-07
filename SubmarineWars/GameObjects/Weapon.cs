@@ -7,7 +7,7 @@ namespace SubmarineWars.GameObjects
 {
     public class Weapon
     {
-        public enum WeaponTypes { THREE_SHOOTER }
+        public enum WeaponTypes { THREE_SHOOTER, TORPEDO }
         public WeaponTypes WeaponType;
 
         public Weapon(WeaponTypes weaponType)
